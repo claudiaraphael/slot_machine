@@ -51,28 +51,28 @@ const deposit = () => {
 
 const getNumberOfLines = () => {
     while (true) {
-        const lines = prompt("Enter the number of lines you want to bet on (1-3): ");
-        const numberLines = parseInt(lines); // converts str to integer
+        const linesValue = prompt("Enter the number of lines you want to bet on (1-3): ");
+        const lines = parseInt(linesValue); // converts str to integer
 
-        if (isNaN(numberLines) || numberLines <= 0 || numberLines > 3) {
+        if (isNaN(lines) || lines <= 0 || lines > 3) {
             console.log("invalid number of lines, try again");
         } else {
-            return numberLines;
+            return lines;
         }
     }
 }
 
-// numberBet > balance / lines means that the user cannot bet more than they have
+// bet > balance / lines means that the user cannot bet more than they have
 // balance / lines means that for each line, the user can bet that much
 const getBet = (balance, lines) => {
     while (true) {
-        const bet = prompt("Place your bet: ");
-        const numberBet = parseFloat(bet); // converts str to float
+        const valuebet = prompt("Place your bet: ");
+        const bet = parseFloat(valuebet); // converts str to float
 
-        if (isNaN(numberBet) || numberBet > balance / lines || numberBet <= 0) {
+        if (isNaN(bet) || bet > balance / lines || bet <= 0) {
             console.log("Invalid bet amount, try again");
         } else {
-            return numberBet;
+            return bet;
         }
     }
 }
@@ -81,48 +81,100 @@ const spin = () => {
   const symbols = [];
   // loop through the SYMBOLS_COUNT object and push/append the symbols into the symbols array
   for (const [symbol, count] of Object.entries(SYMBOLS_COUNT)) {
-    // symbol is the key, count is the value
-    console.log(symbol, count)
     // push the symbol into the symbols array count times
     for (let i = 0; i < count; i++) {
       symbols.push(symbol);
-    }
-  }
-
-  const reels = [[], [], []]; // each array represents a column inside the machine
-  for (let i = 0; i < COLS; i++) {
-    const reelSymbols = [...symbols]; // Copy the full symbol set for each column
-    for (let i = 0; i <ROWS; i++) { // loop through the rows
-        const randomIndex = Math.floor(Math.random() * reelSymbols.length); // get a random index
-        const selectedSymbol = reelSymbols[randomIndex]; // get the symbol at the random index        
-        reels[i].push(selectedSymbol); // push the symbol into the reels array
-        reelSymbols.splice(randomIndex, 1); // remove the symbol from the reelSymbols array
-    
     } 
+  };
+
+  const reels = []; // each array represents a column inside the machine
+  for (let i = 0; i < COLS; i++) {
+    reels.push([]); // push an empty array into the reels array
+    const reelSymbols = [...symbols]; // copy the symbols array 
+    for (let j = 0; j < ROWS; j++) {
+        const randomIndex = Math.floor(Math.random() * reelSymbols.length); // get a random index
+        const selectedSymbol = reelSymbols[randomIndex];
+        reels[i].push(selectedSymbol);
+        reelSymbols.splice(randomIndex, 1); // remove the selected symbol from the array copia
+    }
   }
   return reels; // return the reels array
 };
 
+const transpose = (reels) => {
+    const rows = [];
+
+    for (let i= 0; i < ROWS; i++) {
+        rows.push([]);
+        for (let j = 0; j < COLS; j++) {
+            rows[i].push(reels[j][i]); // push the symbol into the rows array
+        }
+    }
+    return rows;
+}
+
+const printRows = (rows) => {
+    for (const row of rows) {
+        let rowString = "";     //
+        for (const [i, symbol] of row.entries()) { // loop through the rows array
+            rowString += symbol; // add the symbol to the rowString
+            if (i != rows.length - 1) {
+                rowString += " | "; // add a pipe to the rowString
+            }
+        } console.log(rowString);
+    } 
+}
+
+
+// win: when you match 3 symbols in a row
+// You can win on all 3 rows
+
+const getWinnings = (rows, bet, lines) => {
+    let winnings = 0;
+    for (let row = 0; row < lines; row++) {
+        const symbols = rows[row]; // get the symbols in the row
+        let allSame = true; // check if all symbols are the same
+
+
+        for (const symbol of symbols) {
+            if (symbol != symbols[0]) {
+                allSame = false; // if the symbol is not the same as the first symbol, set allSame to false
+                break; // exit the loop
+            }
+
+            if (allSame) {
+                winnings += bet * SYMBOLS_VALUES[symbols[0]];
+            }
+        }
+    } return winnings;
+};
+
+
 
 // functions calling
-const reels = spin();
-const depositAmount = deposit();
-const numberLines = getNumberOfLines();
-const numberBet = getBet();
+let balance = deposit();                   // Step 1: User deposits money
+const lines = getNumberOfLines();         // Step 2: User chooses how many lines to bet on
+const bet = getBet(balance, lines);       // Step 3: User chooses how much to bet per line
+const reels = spin();                     // Step 4: Spin the slot machine
+const rows = transpose(reels);            // Step 5: Convert columns to rows (for display)
+printRows(rows);                          // Step 6: Show the result
+const winnings = getWinnings(rows, bet, lines); // Step 7: Check for winnings
+balance += winnings - (bet * lines);      // Step 8: Update the user's balance
+
+// Step 9: Check if the user wants to play again
+
+
 
 
 
 // console exhibition:
-console.log('You have deposited: $' + depositAmount)
-console.log('You have chosen ' + numberLines + ' lines to bet on.')
-console.log('You have chosen to bet $' + numberBet + ' on each line.')
+console.log('You have deposited: $' + balance)
+console.log('You have chosen ' + lines + ' lines to bet on.')
+console.log('You have chosen to bet $' + bet + ' on each line.')
+console.log('You have won: $' + winnings)
 
 
 
 
-let balance = deposit();
-
-// win: when you match 3 symbols in a row
-// You can win on all 3 rows
 
     
