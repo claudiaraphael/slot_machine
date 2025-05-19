@@ -131,50 +131,66 @@ const printRows = (rows) => {
 
 const getWinnings = (rows, bet, lines) => {
     let winnings = 0;
+
     for (let row = 0; row < lines; row++) {
         const symbols = rows[row]; // get the symbols in the row
         let allSame = true; // check if all symbols are the same
-
 
         for (const symbol of symbols) {
             if (symbol != symbols[0]) {
                 allSame = false; // if the symbol is not the same as the first symbol, set allSame to false
                 break; // exit the loop
             }
-
-            if (allSame) {
-                winnings += bet * SYMBOLS_VALUES[symbols[0]];
-            }
         }
-    } return winnings;
+        
+        if (allSame) {
+            winnings += bet * SYMBOLS_VALUES[symbols[0]];
+        }
+    } 
+    
+    return winnings;
+    
 };
 
 
+const game = () => {
+    // Step 1: User deposits money
+    let balance = deposit();
+    while (true) {
+        console.log("You have a balance of: $" + balance);
+        // Step 2: User chooses how many lines to bet on
+        const lines = getNumberOfLines();
+        // Step 3: User chooses how much to bet per line
+        const bet = getBet(balance, lines);
+        balance -= bet * lines; // subtract the bet from the balance 
+        console.log("You have bet: $" + bet + " on " + lines + " lines.");
+        // Step 4: Spin the slot machine
+        const reels = spin();
+        // Step 5: Convert columns to rows (for display)
+        const rows = transpose(reels); 
+        // Step 6: Show the result
+        printRows(rows);
+        // Step 7: Check for winnings
+        const winnings = getWinnings(rows, bet, lines);
+        balance += winnings; // add the winnings to the balance
+        console.log("You have won: $" + winnings);
+        // Step 8: Update the user's balance
 
-// functions calling
-let balance = deposit();                   // Step 1: User deposits money
-const lines = getNumberOfLines();         // Step 2: User chooses how many lines to bet on
-const bet = getBet(balance, lines);       // Step 3: User chooses how much to bet per line
-const reels = spin();                     // Step 4: Spin the slot machine
-const rows = transpose(reels);            // Step 5: Convert columns to rows (for display)
-printRows(rows);                          // Step 6: Show the result
-const winnings = getWinnings(rows, bet, lines); // Step 7: Check for winnings
-balance += winnings - (bet * lines);      // Step 8: Update the user's balance
+        if (balance <= 0) {
+            console.log("you ran out of money!");
+            break
+        }
 
-// Step 9: Check if the user wants to play again
-
-
-
-
-
-// console exhibition:
-console.log('You have deposited: $' + balance)
-console.log('You have chosen ' + lines + ' lines to bet on.')
-console.log('You have chosen to bet $' + bet + ' on each line.')
-console.log('You have won: $' + winnings)
-
-
-
-
-
+        const playAgain = prompt("Do you want to play again? (y/n): ");
+        if (playAgain != "y") {
+            console.log("Thank you for playing!")
+            break;
+    }
     
+    }
+
+};
+
+
+game();
+
